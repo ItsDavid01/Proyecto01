@@ -7,8 +7,8 @@ const router = express.Router();
 router.get('/', ctl.getAll);
 router.get('/:id', ctl.getById);
 
-router.post('/', authenticate, authorize('admin'), ctl.create);
-router.put('/:id', authenticate, authorize('admin'), ctl.update);
-router.delete('/:id', authenticate, authorize('admin'), ctl.delete);
+router.post('/', authenticate, authorize('createBook'), ctl.create);
+router.put('/:id', authenticate, authorize('updateBook'), ctl.update);
+router.delete('/:id', authenticate, authorize('deleteBook'), ctl.delete);
 
 module.exports = router;

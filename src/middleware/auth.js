@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 
 exports.authenticate = async (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ','');
+  const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ message: 'No token' });
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
@@ -16,8 +16,26 @@ exports.authenticate = async (req, res, next) => {
   }
 };
 
-exports.authorize = (...roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role))
-    return res.status(403).json({ message: 'Sin permiso' });
-  next();
+exports.authorize = (...reqPerms) => (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Sin autenticar' });
+  }
+
+  const userPerms = req.user.perms;
+  const selfId = req.user._id.toString();
+  const targetId = req.params.id;
+
+  for (const perm of reqPerms) {
+    if (perm.endsWith('Self')) {
+      if (userPerms.includes(perm) && targetId === selfId) {
+        return next();
+      }
+    } else {
+      if (userPerms.includes(perm)) {
+        return next();
+      }
+    }
+  }
+
+  return res.status(403).json({ message: 'No tienes permiso para hacer eso' })
 };

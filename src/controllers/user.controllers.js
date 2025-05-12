@@ -2,11 +2,11 @@ const actions = require('../actions/user.actions');
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
-    if (!name || !email || !password || !role) {
+    const { name, email, password, perms = [] } = req.body;
+    if (!name || !email || !password) {
       return res.status(400).json({ message: 'Hacen falta datos' });
     }
-    const u = await actions.registerUser({ name, email, password, role });
+    const u = await actions.registerUser({ name, email, password, perms });
     const { password: _, ...out } = u.toObject();
     res.status(201).json(out);
   } catch (err) {
@@ -29,22 +29,19 @@ exports.login = async (req, res, next) => {
 };
 
 exports.getMe = async (req, res, next) => {
-  const u = await actions.getUserById(req.user._id);
-  res.json(u);
+  const response = await actions.getUserById(req.user._id);
+  const { password: _, ...out } = response.toObject();
+  res.json(out);
 };
 
 exports.update = async (req, res, next) => {
-  const targetId = req.params.id;
-  if (req.user._id.toString() !== targetId && req.user.role !== 'admin')
-    return res.status(403).json({ message: 'No tiene permiso para hacer eso' });
-  const u = await actions.updateUser(targetId, req.body);
-  res.json(u);
+  const response = await actions.updateUser(req.params.id, req.body);
+  const { password: _, ...out } = response.toObject();
+  res.json(out);
 };
 
 exports.delete = async (req, res, next) => {
-  const targetId = req.params.id;
-  if (req.user._id.toString() !== targetId && req.user.role !== 'admin')
-    return res.status(403).json({ message: 'No tiene permiso para hacer eso' });
-  const u = await actions.softDeleteUser(targetId);
-  res.json(u);
+  const response = await actions.softDeleteUser(req.params.id);
+  const { password: _, ...out } = response.toObject();
+  res.json(out);
 };

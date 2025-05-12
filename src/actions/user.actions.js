@@ -8,14 +8,17 @@ exports.findUserByEmail = async (email) => {
   return await User.findOne({ email });
 };
 
-exports.registerUser = async ({ name, email, password, role }) => {
+exports.registerUser = async ({ name, email, password, perms }) => {
   if (await User.findOne({ email })) {
     const err = new Error('El email ya fue registrado'); err.status = 400; throw err;
   }
   const salt = await bcrypt.genSalt(10);
   const pwdPeppered = password + PEPPER;
   const hash = await bcrypt.hash(pwdPeppered, salt);
-  return await new User({ name, email, password: hash, role }).save();
+  if (perms.length > 0){
+    return await new User({ name, email, password: hash, perms }).save();
+  } 
+  return await new User({ name, email, password: hash }).save();
 };
 
 exports.loginUser = async ({ email, password }) => {
